@@ -4,9 +4,11 @@
     <van-nav-bar title="标题" class="page-nav-bar"></van-nav-bar>
 
     <!-- 登录表单 -->
+    <!-- 注册点击登录的事件 -->
     <van-form @submit="onSubmit">
       <!-- 手机号码输入部分开始 -->
-      <van-field name="用户名" placeholder="请输入手机号">
+      <!-- v-model 绑定对应数据 -->
+      <van-field name="手机号" v-model="user.mobile" placeholder="请输入手机号">
         <!--要使用插槽要将van-field单标签变成双标签  -->
         <!-- 使用插槽的方式给 van-field 添加图标 -->
         <i slot="left-icon" class="toutiao toutiao-shouji"></i>
@@ -14,7 +16,8 @@
       <!-- 手机号码输入部分结束 -->
 
       <!-- 验证码输入部分开始 -->
-      <van-field name="验证码" placeholder="请输入验证码">
+      <!-- v-model 绑定对应数据 -->
+      <van-field name="验证码" v-model="user.code" placeholder="请输入验证码">
         <i slot="left-icon" class="toutiao toutiao-yanzhengma"></i>
         <!-- 使用插槽的方式给第二个van-field 添加 button 按钮 -->
         <template #button>
@@ -37,6 +40,8 @@
 </template>
 
 <script>
+// login.vue 中按需导入封装的请求模块
+import { login } from '@/api/user.js'
 export default {
   // 这是组件名称，有三个作用：
   // 1、允许组件模板递归地调用自身，就是在组件内部调用自身组件showtooltip
@@ -49,7 +54,13 @@ export default {
   components: {},
   props: {},
   data() {
-    return {}
+    return {
+      // 根据接口要求绑定获取表单数据，在登录页面组件的实例选项 data 中添加 user 数据字段
+      user: {
+        mobile: '',
+        code: ''
+      }
+    }
   },
   computed: {},
   watch: {},
@@ -60,8 +71,36 @@ export default {
     // 事件名:--说明:--回调函数
     // submit:--提交表单且验证通过后触发:--values: object
     // failed:--提交表单且验证不通过后触发:--errorInfo:--{ values: object, errors: object[] }
-    onSubmit(values) {
+
+    // 表单提交事件
+    async onSubmit(values) {
       console.log('submit', values)
+      // 1.获取表单数据
+      const user = this.user
+      // 2. 表单验证
+      //    加载提示
+      this.$toast.loading({
+        message: '登录中...',
+        // 禁用背景点击
+        forbidClick: true,
+        // 持续时间，默认是 2000，如果为 0 则持续展示
+        duration: 0
+      })
+      // 3. 提交表单请求登录
+      try {
+        const res = await login(user)
+        console.log(res)
+        this.$toast.success('登录成功')
+      } catch (error) {
+        // 判断是否有error响应体
+        if (error.response && error.response.status === 400) {
+          // console.log('手机号或验证码错误')
+          this.$toast.fail('手机号或验证码错误')
+        } else {
+          // console.log('登录失败，请稍后重试', error)
+          this.$toast.fail('登录失败,请稍后重试')
+        }
+      }
     }
   }
 }
@@ -109,7 +148,7 @@ export default {
 //发送验证码按钮:需求只改变这个页面的这个button按钮;使用/deep/
 //.van-button--primary这个类名源于Vant组件内部封装的button组件自带
 //默认的边框颜色是绿色这里更改为蓝色
-/deep/ .van-button--primary{
-  border-color: #1989fa!important;
+/deep/ .van-button--primary {
+  border-color: #1989fa !important;
 }
 </style>
