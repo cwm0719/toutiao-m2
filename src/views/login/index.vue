@@ -1,5 +1,39 @@
 <template>
-  <div class="login-container">登录页面</div>
+  <div class="login-container">
+    <!-- 导航栏 -->
+    <van-nav-bar title="标题" class="page-nav-bar"></van-nav-bar>
+
+    <!-- 登录表单 -->
+    <van-form @submit="onSubmit">
+      <!-- 手机号码输入部分开始 -->
+      <van-field name="用户名" placeholder="请输入手机号">
+        <!--要使用插槽要将van-field单标签变成双标签  -->
+        <!-- 使用插槽的方式给 van-field 添加图标 -->
+        <i slot="left-icon" class="toutiao toutiao-shouji"></i>
+      </van-field>
+      <!-- 手机号码输入部分结束 -->
+
+      <!-- 验证码输入部分开始 -->
+      <van-field name="验证码" placeholder="请输入验证码">
+        <i slot="left-icon" class="toutiao toutiao-yanzhengma"></i>
+        <!-- 使用插槽的方式给第二个van-field 添加 button 按钮 -->
+        <template #button>
+          <van-button class="send-sms-btn" size="small" type="primary">
+            发送验证码
+          </van-button>
+        </template>
+      </van-field>
+      <!-- 验证码输入部分结束 -->
+
+      <!-- 登录按钮部分开始 -->
+      <div class="login-btn-wrap" style="margin: 16px">
+        <van-button class="login-btn" block type="info" native-type="submit"
+          >提交</van-button
+        >
+      </div>
+      <!-- 登录按钮部分结束 -->
+    </van-form>
+  </div>
 </template>
 
 <script>
@@ -21,7 +55,15 @@ export default {
   watch: {},
   create() {},
   mounted() {},
-  methods: {}
+  methods: {
+    // 表单提交事件
+    // 事件名:--说明:--回调函数
+    // submit:--提交表单且验证通过后触发:--values: object
+    // failed:--提交表单且验证不通过后触发:--errorInfo:--{ values: object, errors: object[] }
+    onSubmit(values) {
+      console.log('submit', values)
+    }
+  }
 }
 </script>
 
@@ -38,4 +80,36 @@ export default {
 // 如果这时候`父组件`需要改`子组件`的样式，
 // 但是又不影响`其他页面`使用这个`子组件`的样式的时候。
 // 原理：这样在打包的时候会生成一个独一无二hash值追加给原本这个类名
+
+.login-container {
+  .toutiao {
+    //字体图标是我们引入的;不属于Vant的内容采用1倍图
+    //设置字体图标大小;尺寸是24*37;取最大的37px
+    font-size: 37px;
+  }
+  //`获取验证码`的按钮样式
+  .send-sms-btn {
+    // width: 160px;
+    height: 46px;
+    line-height: 46px;
+    background-color: #ededed;
+    font-size: 22px;
+    color: #666;
+  }
+  //登录按钮样式
+  .login-btn-wrap {
+    //不让整个盒子顶着上方
+    padding: 53px 53px;
+    .login-btn {
+      background-color: #6db4fb;
+      border: none;
+    }
+  }
+}
+//发送验证码按钮:需求只改变这个页面的这个button按钮;使用/deep/
+//.van-button--primary这个类名源于Vant组件内部封装的button组件自带
+//默认的边框颜色是绿色这里更改为蓝色
+/deep/ .van-button--primary{
+  border-color: #1989fa!important;
+}
 </style>
