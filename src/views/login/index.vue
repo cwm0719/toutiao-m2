@@ -8,7 +8,10 @@
     <van-form @submit="onSubmit">
       <!-- 手机号码输入部分开始 -->
       <!-- v-model 绑定对应数据 -->
-      <van-field name="手机号" v-model="user.mobile" placeholder="请输入手机号">
+      <van-field name="手机号"
+       v-model="user.mobile"
+       placeholder="请输入手机号"
+       :rules="userFormRules.mobile">
         <!--要使用插槽要将van-field单标签变成双标签  -->
         <!-- 使用插槽的方式给 van-field 添加图标 -->
         <i slot="left-icon" class="toutiao toutiao-shouji"></i>
@@ -17,7 +20,10 @@
 
       <!-- 验证码输入部分开始 -->
       <!-- v-model 绑定对应数据 -->
-      <van-field name="验证码" v-model="user.code" placeholder="请输入验证码">
+      <van-field name="验证码"
+       v-model="user.code"
+       placeholder="请输入验证码"
+       :rules="userFormRules.code">
         <i slot="left-icon" class="toutiao toutiao-yanzhengma"></i>
         <!-- 使用插槽的方式给第二个van-field 添加 button 按钮 -->
         <template #button>
@@ -59,6 +65,34 @@ export default {
       user: {
         mobile: '',
         code: ''
+      },
+      // 用户名和验证码校验规则
+      // ()是为了提取匹配字符串的，表达式中有几个()就有几个相应的匹配字符串
+      // [] 是定义匹配的`单个字符`的范围，比如[a-zA-Z0-9]表示相应位置的字符要匹配英文字符或数字。
+      // {} 一般是用来匹配的`长度`，格式为{n}、{n,m}、{n,}。(ab){0,12}? 表示匹配0到12次但尽可能少。
+      // \d数字。\D非数字。
+      userFormRules: {
+        mobile: [
+          {
+            required: true,
+            message: '手机号不能为空'
+          },
+          {
+            pattern: /^1[3|5|7|8]\d{9}$/,
+            message: '手机号格式错误'
+          }
+        ],
+        code: [
+          {
+            required: true,
+            message: '验证码不能为空'
+          },
+          {
+            pattern: /^\d{6}$/,
+            message: '验证码格式错误'
+
+          }
+        ]
       }
     }
   },
@@ -110,7 +144,7 @@ export default {
 // style中的lang属性决定了样式中的语法，
 // 设置了scoped属性就可以避免当前页面的样式污染到其他页面。
 
-// 在style经常用scoped属性实现组件的私有化,所以才需要样式穿透
+// 在style经常用scoped属性实现组件样式的私有化,所以才需要样式穿透
 // >>> 只作用于css
 // ::v-deep 只作用于sass
 // /deep/ 只作用于less
