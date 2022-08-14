@@ -5,13 +5,19 @@
 
     <!-- 登录表单 -->
     <!-- 注册点击登录的事件 -->
-    <van-form @submit="onSubmit">
+    <van-form @submit="onSubmit" ref="loginFrom">
       <!-- 手机号码输入部分开始 -->
       <!-- v-model 绑定对应数据 -->
-      <van-field name="手机号"
-       v-model="user.mobile"
-       placeholder="请输入手机号"
-       :rules="userFormRules.mobile">
+      <!-- 对验证规则进行优化，设置number 属性控制输入的类型，
+      以及添加 maxlength 属性设置最大数 -->
+      <van-field
+        name="mobile"
+        v-model="user.mobile"
+        placeholder="请输入手机号"
+        :rules="userFormRules.mobile"
+        type="number"
+        maxlength="11"
+      >
         <!--要使用插槽要将van-field单标签变成双标签  -->
         <!-- 使用插槽的方式给 van-field 添加图标 -->
         <i slot="left-icon" class="toutiao toutiao-shouji"></i>
@@ -20,14 +26,40 @@
 
       <!-- 验证码输入部分开始 -->
       <!-- v-model 绑定对应数据 -->
-      <van-field name="验证码"
-       v-model="user.code"
-       placeholder="请输入验证码"
-       :rules="userFormRules.code">
+      <!-- 对验证规则进行优化，设置number 属性控制输入的类型，
+      以及添加 maxlength 属性设置最大数 -->
+      <van-field
+        name="code"
+        v-model="user.code"
+        placeholder="请输入验证码"
+        :rules="userFormRules.code"
+        type="number"
+        maxlength="6"
+      >
         <i slot="left-icon" class="toutiao toutiao-yanzhengma"></i>
         <!-- 使用插槽的方式给第二个van-field 添加 button 按钮 -->
         <template #button>
-          <van-button class="send-sms-btn" size="small" type="primary">
+          <!-- 倒计时组件van-count-down -->
+          <!-- 绑定 time 属性为倒计时时间 -->
+          <!-- 设置 format 属性为格式化时间的格式 -->
+          <van-count-down
+            v-if="isCountDownShow"
+            :time="1000 * 5"
+            format="ss s"
+            @finish="isCountDownShow = false"
+          />
+          <!-- 点击验证码，会触发手机号和验证码的规则 -->
+          <!-- 但是我们只需要验证手机号的规则，这属于官方的一个 bug -->
+          <!-- 官方解决方案:给 button 组件设置native-type设置，否则会触发表单提交。 -->
+          <!-- 给按钮绑定点击事件--触发onSendSms回调-->
+          <van-button
+            v-else
+            native-type="button"
+            class="send-sms-btn"
+            size="small"
+            type="primary"
+            @click="onSendSms"
+          >
             发送验证码
           </van-button>
         </template>
@@ -47,7 +79,7 @@
 
 <script>
 // login.vue 中按需导入封装的请求模块
-import { login } from '@/api/user.js'
+import { login, sendSms } from '@/api/user.js'
 export default {
   // 这是组件名称，有三个作用：
   // 1、允许组件模板递归地调用自身，就是在组件内部调用自身组件showtooltip
@@ -90,10 +122,11 @@ export default {
           {
             pattern: /^\d{6}$/,
             message: '验证码格式错误'
-
           }
         ]
-      }
+      },
+      // 控制倒计时的显示和隐藏
+      isCountDownShow: false
     }
   },
   computed: {},
@@ -133,6 +166,33 @@ export default {
         } else {
           // console.log('登录失败，请稍后重试', error)
           this.$toast.fail('登录失败,请稍后重试')
+        }
+      }
+    },
+
+    // 验证手机验证码
+    async onSendSms() {
+      console.log(1111)
+      try {
+        // 在事件处理程序中，获取到表单对象,调用 validate 方法,就可以实现表单校验
+        // validate 方法支持传入name来验证单个表单项,所以我们给<van-field>组件设置name属性为mobile和code
+        await this.$refs.loginFrom.validate('mobile')
+        console.log('校验成功')
+      } catch (err) {
+        return console.log('校验失败', err)
+      }
+      // 2. 验证通过，显示倒计时
+      this.isCountDownShow = true
+      // 3. 请求发送验证码
+      try {
+        await sendSms(this.user.mobile)
+        this.$toast('发送成功')
+      } catch (error) {
+        this.isCountDownShow = false
+        if (error.response.status === 429) {
+          this.$toast('发送太频繁，请稍后重试')
+        } else {
+          this.$toast('发送失败,请稍后重试')
         }
       }
     }

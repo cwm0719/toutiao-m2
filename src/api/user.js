@@ -12,3 +12,10 @@ export const login = (data) => {
     data: data
   })
 }
+// 获取验证码的接口请求
+export const sendSms = (mobile) => {
+  return request({
+    method: 'GET',
+    url: `/v1_0/sms/codes/${mobile}`
+  })
+}
